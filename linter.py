@@ -22,7 +22,7 @@ class Gometalinter(Linter):
     """Provides an interface to gometalinter."""
 
     syntax = ('go', 'gosublime-go', 'gotools', 'anacondago-go')
-    cmd = 'gometalinter --fast .'
+    cmd = 'gometalinter --fast'
     regex = r'(?:[^:]+):(?P<line>\d+):(?P<col>\d+)?:(?:(?P<warning>warning)|(?P<error>error)):\s*(?P<message>.*)'
     error_stream = util.STREAM_BOTH
     default_type = highlight.ERROR
@@ -35,7 +35,7 @@ class Gometalinter(Linter):
 
     def _dir_env(self):
         settings = self.get_view_settings()
-        dir = os.path.dirname(self.filename)
+        dir = tempfile.gettempdir()
         env = self.get_environment(settings)
         return dir, env
 
@@ -44,8 +44,9 @@ class Gometalinter(Linter):
         if not dir:
             print('gometalinter: skipped linting of unsaved file')
             return
-        filename = os.path.basename(self.filename)
-        cmd = cmd + ['-I', filename]
+        filename = self.filename
+        dirname = os.path.dirname(self.filename)
+        cmd = cmd + [dirname, '-I', self.filename]
         print('gometalinter: live linting {} in {}: {}'.format(filename, dir, ' '.join(map(shlex.quote, cmd))))
         files = [f for f in os.listdir(dir) if f.endswith('.go')]
         if len(files) > 40:
